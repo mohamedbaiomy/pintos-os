@@ -1,2 +1,9 @@
 FAIL
-Run didn't produce any output
+Kernel panic in run: PANIC at ../../threads/thread.c:272 in thread_current(): assertion `t->status == THREAD_RUNNING' failed.
+Call stack: 0xc002cf99 0xc0020b41 0xc0021182 0xc00214bb 0xc00205cd
+Translation of call stack:
+0xc002cf99: debug_panic (.../../lib/kernel/debug.c:38)
+0xc0020b41: thread_current (..../../threads/thread.c:275)
+0xc0021182: init_thread (..../../threads/thread.c:474)
+0xc00214bb: thread_init (...../../threads/thread.c:99)
+0xc00205cd: main (...d/../../threads/init.c:94)

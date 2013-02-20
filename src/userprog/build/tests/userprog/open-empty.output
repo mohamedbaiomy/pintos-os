@@ -1,0 +1,16 @@
+Copying tests/userprog/open-empty to scratch partition...
+qemu -L /home/courses/cs3204/share/qemu -hda /tmp/gGmo8MVPfK.dsk -m 4 -net none -nographic -monitor null
+PiLo hda2
+Loading...........
+Kernel command line: -q -f extract run open-empty
+Kernel PANIC at ../../threads/thread.c:272 in thread_current(): assertion `t->status == THREAD_RUNNING' failed.
+Call stack: 0xc002cf99 0xc0020b41 0xc0021182 0xc00214bb 0xc00205cd.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 0 ticks
+Thread: 0 idle ticks, 0 kernel ticks, 0 user ticks
+Console: 450 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

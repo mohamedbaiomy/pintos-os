@@ -1,4 +1,6 @@
 #include "userprog/syscall.h"
+#include "lib/user/syscall.h"
+#include "userprog/process.h"
 #include <stdio.h>
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
@@ -6,21 +8,7 @@
 #include "threads/vaddr.h"
 
 
-static void syscall_handler (struct intr_frame *);
-
-static void sys_halt (void);
-static int sys_exit (int);
-static int sys_exec (const char *);
-static int sys_wait (int);
-static bool sys_create (const char *file, unsigned initial_size);
-static bool sys_remove (const char *file);
-static int sys_open (const char * file);
-static int sys_filesize (int fd);
-static int sys_read (int fd, void *buffer, unsigned size);
-static int sys_write (int fd, const void *buffer, unsigned size);
-static void sys_seek (int fd, unsigned position);
-static unsigned int sys_tell (int fd);
-static void sys_close (int fd);
+void syscall_handler (struct intr_frame *);
 
 static int get_user(const uint8_t *uaddr);
 static bool put_user(uint8_t *udst, uint8_t byte);
@@ -32,7 +20,7 @@ syscall_init (void)
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
 
-static void
+void
 syscall_handler (struct intr_frame *f) 
 {
   printf ("system call!\n");
@@ -52,7 +40,7 @@ syscall_handler (struct intr_frame *f)
     ret = sys_exit (*(syscall_number + 1));
     break;
   case SYS_EXEC:
-    ret = sys_exec ((char *) *(syscall_number + 1));
+    ret = exec ((char *) *(syscall_number + 1));
     break;
   case SYS_WAIT:
     ret = sys_wait (*(syscall_number + 1));
@@ -92,7 +80,7 @@ syscall_handler (struct intr_frame *f)
 
   return;
 }
-
+/*
 static void sys_halt (void)
 {
   power_off();
@@ -103,12 +91,33 @@ static int sys_exit (int status UNUSED)
 {
   return 0;
 }
+*/
 
-static int sys_exec (const char * cmd_line UNUSED)
+/* 
+ * Create a new child process and run it.
+ * parse the cmd_line to find the executable filename.
+ *
+ * When done, signal the parent that you are done.
+ *
+ * cannot return until it knows for sure the child process
+ * was loaded successfully.
+ *
+ * return the tid of the new thread or -1 if 
+ * the call failed
+ */
+pid_t exec (const char * cmd_line)
 {
-  return 0;
+	char * ptr  = cmd_line;
+
+	while (( *ptr != ' ') && ( *ptr != '\0'))
+		ptr++;
+
+	*ptr = '\0';
+	
+  return process_execute(cmd_line);
 }
 
+/*
 static int sys_wait (int pid UNUSED)
 {
   return 0;
@@ -158,6 +167,7 @@ static void sys_close (int fd UNUSED)
 {
   return;
 }
+*/
 
 /* Read a byte at user virtual address UADDR.
 	 UADDR must be below PHYS_BASE.
@@ -204,10 +214,9 @@ bool is_pointer_valid(const uint8_t *uaddr, bool read)
 	{
 		return false;
 	}
-	
-	if( read )
+if( read )
 		return get_user( uaddr ) != -1; 
 	else
-		return put_user( uaddr, 'm' );
+		return put_user( uaddr, 'c' );
 }
 
