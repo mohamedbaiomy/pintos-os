@@ -201,7 +201,13 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
-  return tid;
+	/* wait for the child to load successfully */
+	sema_down(&thread_current()->create);
+	
+	if( thread_current()->child_loaded_successfully )
+  	return tid;
+	else	
+		return TID_ERROR;
 }
 
 /* Puts the current thread to sleep.  It will not be scheduled
@@ -463,6 +469,11 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+
+	sema_init(&t->create, 0); 
+	t->parent = thread_current();
+	t->child_loaded_successfully = false;
+
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
