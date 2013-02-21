@@ -81,16 +81,16 @@ syscall_handler (struct intr_frame *f)
   return;
 }
 /*
-static void sys_halt (void)
-{
+  static void sys_halt (void)
+  {
   power_off();
   return;
-}
+  }
 
-static int sys_exit (int status UNUSED)
-{
+  static int sys_exit (int status UNUSED)
+  {
   return 0;
-}
+  }
 */
 
 /* 
@@ -107,79 +107,79 @@ static int sys_exit (int status UNUSED)
  */
 pid_t exec (const char * cmd_line)
 {
-	char * ptr  = cmd_line;
+  char * ptr  = cmd_line;
 
-	while (( *ptr != ' ') && ( *ptr != '\0'))
-		ptr++;
+  while (( *ptr != ' ') && ( *ptr != '\0'))
+    ptr++;
 
-	*ptr = '\0';
+  *ptr = '\0';
 	
   return process_execute(cmd_line);
 }
 
 /*
-static int sys_wait (int pid UNUSED)
-{
+  static int sys_wait (int pid UNUSED)
+  {
   return 0;
-}
+  }
 
-static bool create (const char *file UNUSED, unsigned initial_size UNUSED)
-{
+  static bool create (const char *file UNUSED, unsigned initial_size UNUSED)
+  {
   return 0;
-}
+  }
 
-static bool sys_remove (const char *file UNUSED)
-{
+  static bool sys_remove (const char *file UNUSED)
+  {
   return 0;
-}
+  }
 
-static int sys_open (const char * file UNUSED)
-{
+  static int sys_open (const char * file UNUSED)
+  {
   return 0;
-}
+  }
 
-static int sys_filesize (int fd UNUSED)
-{
+  static int sys_filesize (int fd UNUSED)
+  {
   return 0;
-}
+  }
 
-static int sys_read (int fd UNUSED, void *buffer UNUSED, unsigned size UNUSED)
-{
+  static int sys_read (int fd UNUSED, void *buffer UNUSED, unsigned size UNUSED)
+  {
   return 0;
-}
+  }
 
-static int sys_write (int fd UNUSED, const void *buffer UNUSED, unsigned size UNUSED)
-{
+  static int sys_write (int fd UNUSED, const void *buffer UNUSED, unsigned size UNUSED)
+  {
   return 0;
-}
+  }
 
-static void sys_seek (int fd UNUSED, unsigned position UNUSED)
-{
+  static void sys_seek (int fd UNUSED, unsigned position UNUSED)
+  {
   return;
-}
+  }
 
-static unsigned int sys_tell (int fd UNUSED)
-{
+  static unsigned int sys_tell (int fd UNUSED)
+  {
   return 0;
-}
+  }
 
-static void sys_close (int fd UNUSED)
-{
+  static void sys_close (int fd UNUSED)
+  {
   return;
-}
+  }
 */
 
 /* Read a byte at user virtual address UADDR.
-	 UADDR must be below PHYS_BASE.
+   UADDR must be below PHYS_BASE.
    Returns the byte value if successful, -1 if a 
    segfault occured. */
 
 static int get_user(const uint8_t *uaddr)
 {
-	int result;
-	asm ("movl $1f, %0; movzbl %1, %0; 1:"
+  int result;
+  asm ("movl $1f, %0; movzbl %1, %0; 1:"
        : "=&a" (result) : "m" (*uaddr));
- 	return result;
+  return result;
 }
 
 /* Writes BYTE to user address UDST. UDST must be below
@@ -187,10 +187,10 @@ static int get_user(const uint8_t *uaddr)
  *       segfault occured. */
 static bool put_user(uint8_t *udst, uint8_t byte)
 {
-	int error_code;
-	  asm ("movl $1f, %0; movb %b2, %1; 1:"
-	       : "=&a" (error_code), "=m" (*udst) : "q" (byte));
-	  return error_code != -1;
+  int error_code;
+  asm ("movl $1f, %0; movb %b2, %1; 1:"
+       : "=&a" (error_code), "=m" (*udst) : "q" (byte));
+  return error_code != -1;
 }
 
 /* Call this function only to figure out if you can
@@ -210,13 +210,13 @@ static bool put_user(uint8_t *udst, uint8_t byte)
  */
 bool is_pointer_valid(const uint8_t *uaddr, bool read)
 {
-	if(( uaddr == NULL) || ( uaddr > PHYS_BASE ))
-	{
-		return false;
-	}
-if( read )
-		return get_user( uaddr ) != -1; 
-	else
-		return put_user( uaddr, 'c' );
+  if(( uaddr == NULL) || ( uaddr > PHYS_BASE ))
+    {
+      return false;
+    }
+  if( read )
+    return get_user( uaddr ) != -1; 
+  else
+    return put_user( uaddr, 'c' );
 }
 
