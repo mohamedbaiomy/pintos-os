@@ -6,25 +6,28 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "devices/shutdown.h"
 
 
 void syscall_handler (struct intr_frame *);
-
 static int get_user(const uint8_t *uaddr);
 static bool put_user(uint8_t *udst, uint8_t byte);
 static bool is_pointer_valid(const uint8_t *uaddr, bool read);
+static struct lock filesys_lock;
   
 void
 syscall_init (void) 
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
+
+  lock_init(&filesys_lock);
 }
 
 void
 syscall_handler (struct intr_frame *f) 
 {
   printf ("system call!\n");
-  thread_exit ();
+  //thread_exit ();
 
   int *syscall_number;
   int ret;
@@ -80,18 +83,38 @@ syscall_handler (struct intr_frame *f)
 
   return;
 }
-/*
-  static void sys_halt (void)
-  {
-  power_off();
-  return;
-  }
 
-  static int sys_exit (int status UNUSED)
-  {
-  return 0;
+/*
+ * Shutdown Pintos from devices/shutdown
+ */
+void sys_halt (void)
+{
+  shutdown_configure(SHUTDOWN_POWER_OFF);
+  shutdown();
+  return;
+}
+
+/*
+ * Allows a thread to exit
+ * If the process's parent waits for it, then this status
+ * will be returned
+ */
+void sys_exit (int status)
+{
+  struct thread *current = thread_current();
+  struct thread *parent = thread_get_by_id(current->parent_id);
+  if (parent == nil) {
+    thread_exit;
+    return;
   }
-*/
+  
+  else {
+    //struct list_elem *e;
+    //for (e = list_begin(&parent->children;); e != list_end(&parent->children);
+    //
+    return;
+  }  
+}
 
 /* 
  * Create a new child process and run it.
@@ -117,57 +140,55 @@ pid_t exec (const char * cmd_line)
   return process_execute(cmd_line);
 }
 
-/*
-  static int sys_wait (int pid UNUSED)
-  {
+int sys_wait (int pid UNUSED)
+{
   return 0;
-  }
+}
 
-  static bool create (const char *file UNUSED, unsigned initial_size UNUSED)
-  {
+bool create (const char *file UNUSED, unsigned initial_size UNUSED)
+{
   return 0;
-  }
+}
 
-  static bool sys_remove (const char *file UNUSED)
-  {
+bool sys_remove (const char *file UNUSED)
+{
   return 0;
-  }
+}
 
-  static int sys_open (const char * file UNUSED)
-  {
+int sys_open (const char * file UNUSED)
+{
   return 0;
-  }
+}
 
-  static int sys_filesize (int fd UNUSED)
-  {
+int sys_filesize (int fd UNUSED)
+{
   return 0;
-  }
+}
 
-  static int sys_read (int fd UNUSED, void *buffer UNUSED, unsigned size UNUSED)
-  {
+int sys_read (int fd UNUSED, void *buffer UNUSED, unsigned size UNUSED)
+{
   return 0;
-  }
+}
 
-  static int sys_write (int fd UNUSED, const void *buffer UNUSED, unsigned size UNUSED)
-  {
+int sys_write (int fd UNUSED, const void *buffer UNUSED, unsigned size UNUSED)
+{
   return 0;
-  }
+}
 
-  static void sys_seek (int fd UNUSED, unsigned position UNUSED)
-  {
+void sys_seek (int fd UNUSED, unsigned position UNUSED)
+{
   return;
-  }
+}
 
-  static unsigned int sys_tell (int fd UNUSED)
-  {
+unsigned int sys_tell (int fd UNUSED)
+{
   return 0;
-  }
+}
 
-  static void sys_close (int fd UNUSED)
-  {
+void sys_close (int fd UNUSED)
+{
   return;
-  }
-*/
+}
 
 /* Read a byte at user virtual address UADDR.
    UADDR must be below PHYS_BASE.
